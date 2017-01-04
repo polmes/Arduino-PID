@@ -10,7 +10,7 @@ const float kp = 19.2;
 const float ki = 200.0;
 
 // PI variables
-int input = 0.0;
+int input = 0;
 double angle = 0.0;
 double output = 0.0;
 double e = 0.0, e_prev = 0.0, sum_e = 0.0;
