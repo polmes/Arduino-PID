@@ -30,7 +30,7 @@ void loop() {
   Serial.print("Sensor: ");
   Serial.print(angle);
   Serial.print(" - ");
-  Serial.print(angle * 100.0 / (maximum - minimum));
+  Serial.println(angle * 100.0 / (maximum - minimum));
 
   delay(20);
 }
