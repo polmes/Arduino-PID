@@ -15,7 +15,7 @@ int input = 0.0;
 double angle = 0.0;
 double output = 0.0;
 double e = 0.0, e_prev = 0.0, sum_e = 0.0;
-double maximum = 1.0;
+double maximum = 1.0, minimum = 1.0;
 bool flag = false;
 
 void control();
@@ -32,6 +32,7 @@ void setup() {
   while (millis() < 5000) {
     angle = analogRead(POT);
     if (angle > maximum) maximum = angle;
+    else if (angle < minimum) minimum = angle;
   }
   digitalWrite(LED_BUILTIN, LOW);
   Serial.print("done. Maximum recorded value: ");
@@ -56,7 +57,7 @@ void loop() {
 
     // Control
     if (flag) {
-      angle = analogRead(POT) * 100.0 / maximum; // read position and convert to %
+      angle = analogRead(POT) * 100.0 / (maximum - minimum); // read position and convert to % of available range
       
       e_prev = e; // previous error
       e = input - angle ; // current error
