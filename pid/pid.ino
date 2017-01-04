@@ -38,7 +38,7 @@ void setup() {
   Serial.println(maximum);
 
   // Setup TimerOne
-  Timer1.initialize(2000); // interrupts every 2000 us == 500 Hz frequency
+  Timer1.initialize(2000); // interrupts every 2000us == 500Hz frequency
   Timer1.attachInterrupt(control);
   Timer1.pwm(FAN, output);
 }
@@ -47,20 +47,20 @@ void loop() {
   while (true) {
     // Communication
     if (Serial.available() > 0) {
-      input = Serial.parseInt();
-      if (input < 0) input = 0;
-      else if (input > 100) input = 100;
+      input = Serial.parseInt(); // read user input from 0% to 100%
+      if (input > 100) input = 100;
+      else if (input < 0) input = 0;
       Serial.print("New input value: ");
       Serial.println(input);
     }
 
     // Control
     if (flag) {
-      angle = analogRead(POT) * 100.0 / maximum;
+      angle = analogRead(POT) * 100.0 / maximum; // read position and convert to %
       
-      e_prev = e;
-      e = input - angle ;
-      sum_e = sum_e + e;
+      e_prev = e; // previous error
+      e = input - angle ; // current error
+      sum_e = sum_e + e; // sum of errors
 
       output = (kp * e + ki * T_SAMPLE * sum_e + kd * (e - e_prev) / T_SAMPLE) * 10.24;
 
@@ -73,7 +73,7 @@ void loop() {
         sum_e = (output / 10.24 - kd * (e - e_prev) / T_SAMPLE - kp * e) / (ki * T_SAMPLE);
       }
 
-      Timer1.setPwmDuty(FAN, output);
+      Timer1.setPwmDuty(FAN, output); // output from 0 to 1024
       flag = false;
     }
   }
