@@ -1,47 +1,38 @@
 #include <TimerOne.h>
 
 // Arduino
-#define POT 0
+#define FAN 9
 
 // Variables
-int angle = 0;
-int maximum = 1, minimum = 0;
+int input = 0;
+double output = 0;
 
 void control();
 
 void setup() {
-  pinMode(POT, INPUT);
+  pinMode(FAN, OUTPUT);
 
   Serial.begin(9600);
-
-  // Calibration
-  Serial.print("Starting calibration... ");
-  digitalWrite(LED_BUILTIN, HIGH);
-  while (millis() < 5000) {
-    angle = analogRead(POT);
-    if (angle > maximum) maximum = angle;
-    else if (angle < minimum) minimum = angle;
-  }
-  digitalWrite(LED_BUILTIN, LOW);
-  Serial.print("done. Maximum recorded value: ");
-  Serial.println(maximum);
 
   // Setup TimerOne
   Timer1.initialize(2000); // interrupts every 2000us == 500Hz frequency
   Timer1.attachInterrupt(control);
+  Timer1.pwm(FAN, output);  
 }
 
 void loop() {
   // Communication
-  Serial.print("Sensor: ");
-  Serial.print(angle);
-  Serial.print(" - ");
-  Serial.println(angle * 100.0 / (maximum - minimum));
-
-  delay(20);
+  if (Serial.available() > 0) {
+    input = Serial.parseInt(); // read user input from 0% to 100%
+    if (input > 100) input = 100;
+    else if (input < 0) input = 0;
+    Serial.print("New input value: ");
+    Serial.println(input);
+  }
 }
 
 void control() {
-  angle = analogRead(POT);
+  output = input * 10.24;
+  Timer1.setPwmDuty(FAN, output);
 }
 
