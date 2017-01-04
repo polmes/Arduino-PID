@@ -5,6 +5,9 @@
 #define POT 0
 #define T_SAMPLE 0.002
 
+// MATLAB
+float t;
+
 // PID constants
 const float kp = 19.2;
 const float ki = 200.0;
@@ -16,6 +19,7 @@ double angle = 0.0;
 double output = 0.0;
 double e = 0.0, e_prev = 0.0, sum_e = 0.0;
 int maximum = 1, minimum = 0;
+bool flag = false;
 
 void control();
 
@@ -25,60 +29,58 @@ void setup() {
 
   Serial.begin(9600);
 
-  // Calibration
-  Serial.print("Starting calibration... ");
-  digitalWrite(LED_BUILTIN, HIGH);
-  while (millis() < 5000) {
-    angle = analogRead(POT);
-    if (angle > maximum) maximum = angle;
-    else if (angle < minimum) minimum = angle;
-  }
-  digitalWrite(LED_BUILTIN, LOW);
-  Serial.print("done. Maximum recorded value: ");
-  Serial.println(maximum);
+  // Manual calibration
+  maximum = 404;
+  minimum = 0;
 
   // Setup TimerOne
   Timer1.initialize(2000); // interrupts every 2000us == 500Hz frequency
   Timer1.attachInterrupt(control);
   Timer1.pwm(FAN, output);
+
+  t = 0;
 }
 
 void loop() {
-  // Communication
-  if (Serial.available() > 0) {
-    input = Serial.parseInt(); // read user input from 0% to 100%
-    if (input > 100) input = 100;
-    else if (input < 0) input = 0;
-    Serial.print("New input value: ");
-    Serial.println(input);
-  }
+  while (true) {
+    // Wait 5s, then set input to 50%
+    if (millis() < 5000) input = 0;
+    else input = 50;
+    
+    if (flag) {
+      angle = analogRead(POT) * 100.0 / (maximum - minimum); // read position and convert to % of available range
+      
+      e_prev = e; // previous error
+      e = input - angle ; // current error
+      sum_e = sum_e + e; // sum of errors
+      
+      output = (kp * e + ki * T_SAMPLE * sum_e + kd * (e - e_prev) / T_SAMPLE) * 10.24;
+      
+      // Corrections
+      if (output > 1024) {
+        output = 1024;
+        sum_e = (output / 10.24 - kd * (e - e_prev) / T_SAMPLE - kp * e) / (ki * T_SAMPLE);
+      } else if (output < 0) {
+        output = 0;
+        sum_e = (output / 10.24 - kd * (e - e_prev) / T_SAMPLE - kp * e) / (ki * T_SAMPLE);
+      }
+      
+      Timer1.setPwmDuty(FAN, output); // output from 0 to 1024
 
-  // Debug
-  Serial.print("Sensor: ");
-  Serial.print(angle); // %
-  Serial.print(" - ");
-  Serial.print("Output: "); // 0 to 1024
-  Serial.println(output);
+      // Format for MATLAB script
+      Serial.print(t, 3);
+      Serial.print(',');
+      Serial.print(input);
+      Serial.print(',');
+      Serial.println(int(angle));
+  
+      flag = false;
+    }
+  }
 }
 
 void control() {
-  angle = analogRead(POT) * 100.0 / (maximum - minimum); // read position and convert to % of available range
-  
-  e_prev = e; // previous error
-  e = input - angle ; // current error
-  sum_e = sum_e + e; // sum of errors
-  
-  output = (kp * e + ki * T_SAMPLE * sum_e + kd * (e - e_prev) / T_SAMPLE) * 10.24;
-  
-  // Corrections
-  if (output > 1024) {
-    output = 1024;
-    sum_e = (output / 10.24 - kd * (e - e_prev) / T_SAMPLE - kp * e) / (ki * T_SAMPLE);
-  } else if (output < 0) {
-    output = 0;
-    sum_e = (output / 10.24 - kd * (e - e_prev) / T_SAMPLE - kp * e) / (ki * T_SAMPLE);
-  }
-  
-  Timer1.setPwmDuty(FAN, output); // output from 0 to 1024
+  t += T_SAMPLE;
+  flag = true;
 }
 
