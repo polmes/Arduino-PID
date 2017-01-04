@@ -30,6 +30,11 @@ void setup() {
   maximum = 404;
   minimum = 0;
 
+  // Setup TimerOne
+  Timer1.initialize(2000); // interrupts every 2000us == 500Hz frequency
+  Timer1.attachInterrupt(control);
+  Timer1.pwm(FAN, output);
+  
   t = 0;
 }
 
