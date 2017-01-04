@@ -1,9 +1,13 @@
+#include <TimerOne.h>
+
 // Arduino
 #define POT 0
 
 // Variables
 int angle = 0;
 int maximum = 1, minimum = 0;
+
+void control();
 
 void setup() {
   pinMode(POT, INPUT);
@@ -21,17 +25,23 @@ void setup() {
   digitalWrite(LED_BUILTIN, LOW);
   Serial.print("done. Maximum recorded value: ");
   Serial.println(maximum);
+
+  // Setup TimerOne
+  Timer1.initialize(2000); // interrupts every 2000us == 500Hz frequency
+  Timer1.attachInterrupt(control);
 }
 
 void loop() {
-  angle = analogRead(POT);
-  
   // Communication
   Serial.print("Sensor: ");
   Serial.print(angle);
   Serial.print(" - ");
-  Serial.print(angle * 100.0 / (maximum - minimum));
+  Serial.println(angle * 100.0 / (maximum - minimum));
 
   delay(20);
+}
+
+void control() {
+  angle = analogRead(POT);
 }
 
