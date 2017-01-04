@@ -8,7 +8,7 @@
 const float kp = 37; // critical value
 
 // P variables
-int input = 0.0;
+int input = 0;
 double angle = 0.0;
 double output = 0.0;
 int maximum = 1, minimum = 0;
