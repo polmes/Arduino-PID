@@ -11,7 +11,7 @@ const float ki = 200.0;
 const float kd = 0.025;
 
 // PID variables
-int input = 0.0;
+int input = 0;
 double angle = 0.0;
 double output = 0.0;
 double e = 0.0, e_prev = 0.0, sum_e = 0.0;
