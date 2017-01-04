@@ -5,12 +5,11 @@
 #define POT 0
 #define T_SAMPLE 0.002
 
-// PID constants
+// PI constants
 const float kp = 19.2;
 const float ki = 200.0;
-const float kd = 0.025;
 
-// PID variables
+// PI variables
 int input = 0.0;
 double angle = 0.0;
 double output = 0.0;
@@ -68,15 +67,15 @@ void control() {
   e = input - angle ; // current error
   sum_e = sum_e + e; // sum of errors
   
-  output = (kp * e + ki * T_SAMPLE * sum_e + kd * (e - e_prev) / T_SAMPLE) * 10.24;
+  output = (kp * e + ki * T_SAMPLE * sum_e) * 10.24;
   
   // Corrections
   if (output > 1024) {
     output = 1024;
-    sum_e = (output / 10.24 - kd * (e - e_prev) / T_SAMPLE - kp * e) / (ki * T_SAMPLE);
+    sum_e = (output / 10.24 - kp * e) / (ki * T_SAMPLE);
   } else if (output < 0) {
     output = 0;
-    sum_e = (output / 10.24 - kd * (e - e_prev) / T_SAMPLE - kp * e) / (ki * T_SAMPLE);
+    sum_e = (output / 10.24 - kp * e) / (ki * T_SAMPLE);
   }
   
   Timer1.setPwmDuty(FAN, output); // output from 0 to 1024
