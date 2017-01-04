@@ -15,7 +15,7 @@ int input = 0.0;
 double angle = 0.0;
 double output = 0.0;
 double e = 0.0, e_prev = 0.0, sum_e = 0.0;
-double maximum = 1.0, minimum = 1.0;
+int maximum = 1, minimum = 0;
 bool flag = false;
 
 void control();
